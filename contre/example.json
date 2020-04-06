@@ -1,0 +1,29 @@
+{
+    "name": "my_example",
+
+    "result_folder": "example_results",
+
+    "training_variables": [
+        "foxWolframR2",
+        "cleoConeThrust1",
+        "something",
+    ],
+
+    "off_res_files": [
+        "example1.root",
+        "example2.root",
+    ],
+
+    "on_res_files": [
+        "example3.root"
+    ],
+
+    "validation_parameters": {
+        "train_size": 0.9,
+        "test_size": 0.1,
+    },
+
+    "bootstraping_parameters": {
+        "n_trainings": 10
+    }
+}
