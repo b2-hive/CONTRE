@@ -1,21 +1,23 @@
 {
     "name": "my_example",
 
-    "result_folder": "example_results",
+    "result_folder": "example_output",
 
     "training_variables": [
-        "foxWolframR2",
+        "foxWolframR1",
         "cleoConeThrust1",
-        "something",
+        "harmonicMomentThrust1"
     ],
 
     "off_res_files": [
-        "example1.root",
-        "example2.root",
+        "ntuple_off_res_data.root"
+        "ntuple_off_res_ccbar.root",
+        "ntuple_off_res_uubar.root",
+        "ntuple_off_res_ddbar.root",
+        "ntuple_off_res_ssbar.root"
     ],
 
     "on_res_files": [
-        "example3.root"
     ],
 
     "validation_parameters": {
@@ -28,7 +30,7 @@
     },
 
     "reweighting_parameters": {
-        "normalize_to": 1
+        "normalize_to": 28.75
     }
 
 }
