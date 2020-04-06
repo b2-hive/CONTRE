@@ -170,11 +170,13 @@ class DelegateValidation(b2luigi.Task):
             )
         yield self.clone(
             ValidationTraining,
+            ntuple_files=parameters.get("off_res_files"),
             training_variables=parameters.get("training_variables"),
             **validation_parameters
         )
         yield self.clone(
             ValidationReweighting,
+            ntuple_files=parameters.get("off_res_files"),
             training_variables=parameters.get("training_variables"),
             **validation_parameters,
             normalize_to=parameters.get("normalize_to")

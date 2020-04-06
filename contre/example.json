@@ -1,7 +1,7 @@
 {
     "name": "my_example",
 
-    "result_folder": "example_output",
+    "result_path": "example_output",
 
     "training_variables": [
         "foxWolframR1",
@@ -10,11 +10,11 @@
     ],
 
     "off_res_files": [
-        "ntuple_off_res_data.root"
-        "ntuple_off_res_ccbar.root",
-        "ntuple_off_res_uubar.root",
-        "ntuple_off_res_ddbar.root",
-        "ntuple_off_res_ssbar.root"
+        "example_input/ntuple_off_res_data.root",
+        "example_input/ntuple_off_res_ccbar.root",
+        "example_input/ntuple_off_res_uubar.root",
+        "example_input/ntuple_off_res_ddbar.root",
+        "example_input/ntuple_off_res_ssbar.root"
     ],
 
     "on_res_files": [
@@ -22,7 +22,7 @@
 
     "validation_parameters": {
         "train_size": 0.9,
-        "test_size": 0.1,
+        "test_size": 0.1
     },
 
     "bootstraping_parameters": {
