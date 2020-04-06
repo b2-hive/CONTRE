@@ -4,6 +4,7 @@ import root_pandas
 import basf2_mva
 from basf2 import conditions
 from sklearn.model_selection import train_test_split
+from contre.weights import get_weights
 
 
 def split_sample(
@@ -114,6 +115,35 @@ class ValidationTraining(b2luigi.Task):
             'ntuple', expert)
 
 
+@b2luigi.inherits(ValidationTraining)
+class ValidationReweighting(b2luigi.Task):
+    """Calculate weights from the classifier output of the validation training.
+
+    Parameters: see ValidationTraining
+        normalize_to (float): Scale weights to match the ratio data / mc used
+            for training.
+    """
+
+    def requires(self):
+        yield self.clone_parent()
+
+    def output(self):
+        yield self.add_to_output('weights.root')
+
+    def run(self):
+        expert = root_pandas.read_root(
+            self.get_input_file_names('expert.root'))
+
+        weights = get_weights(
+            expert=expert,
+            normalize_to=self.normalize_to)
+
+        root_pandas.to_root(
+            weights,
+            self.get_output_file_name('weights.root'),
+            key='weights')
+
+
 class DelegateValidation(b2luigi.Task):
     """Delegate a validation training.
 
@@ -143,6 +173,12 @@ class DelegateValidation(b2luigi.Task):
             training_variables=parameters.get("training_variables"),
             **validation_parameters
         )
+        yield self.clone(
+            ValidationReweighting,
+            training_variables=parameters.get("training_variables"),
+            **validation_parameters,
+            normalize_to=parameters.get("normalize_to")
+        )
 
     def output(self):
         yield self.add_to_output('validation_results.json')
@@ -153,12 +189,14 @@ class DelegateValidation(b2luigi.Task):
 
         bdt = self.get_input_file_names('bdt.xml')
         expert = self.get_input_file_names('expert.root')
+        weights = self.get_input_file_names('weights.root')
 
         results = {
             "train_samples": train_samples,
             "test_samples": test_samples,
             "bdt": bdt,
             "expert": expert,
+            "weights": weights
         }
 
         with open(self.get_output_file_name(

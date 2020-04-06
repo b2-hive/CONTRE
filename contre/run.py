@@ -1,15 +1,19 @@
+import json
 import b2luigi
 from contre.validation import DelegateValidation
 
-parameters_file = 'example.json'
+parameter_file = 'example.json'
+with open(parameter_file) as file:
+    parameters = json.load(file)
 
 b2luigi.set_setting(
     "result_path",
-    parameters_file.get("result_path"),
+    parameters.get("result_path"),
 )
 
 b2luigi.process(
-    DelegateValidation,
-    name=parameters_file.get("name"),
-    parameters_file=parameters_file
+    DelegateValidation(
+        name=parameters.get("name"),
+        parameter_file=parameter_file),
+    workers=200
 )

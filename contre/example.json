@@ -25,5 +25,10 @@
 
     "bootstraping_parameters": {
         "n_trainings": 10
+    },
+
+    "reweighting_parameters": {
+        "normalize_to": 1
     }
+
 }
