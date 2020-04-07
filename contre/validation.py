@@ -84,17 +84,18 @@ class ValidationTraining(b2luigi.Task):
 
     def output(self):
         yield self.add_to_output('bdt.xml')
-        yield self.add_to_output('expert.root')
+        # yield self.add_to_output('expert.root')
 
+    @b2luigi.on_temporary_files
     def run(self):
         bdt = self.get_output_file_name('bdt.xml')
-        expert = self.get_output_file_name('expert.root')
+        # expert = self.get_output_file_name('expert.root')
 
         train_samples = self.get_input_file_names('train.root')
-        test_samples = self.get_input_file_names('test.root')
+        # test_samples = self.get_input_file_names('test.root')
 
         # bdt options
-        conditions.testing_payloads = ['localdb/database.txt']
+        # conditions.testing_payloads = ['localdb/database.txt']
         general_options = basf2_mva.GeneralOptions()
         fastbdt_options = basf2_mva.FastBDTOptions()
 
@@ -109,10 +110,10 @@ class ValidationTraining(b2luigi.Task):
         basf2_mva.teacher(general_options, fastbdt_options)
 
         # expert (apply bdt to test sample)
-        basf2_mva.expert(
-            basf2_mva.vector(*bdt),
-            basf2_mva.vector(*test_samples),
-            'ntuple', expert)
+        # basf2_mva.expert(
+        #     basf2_mva.vector(*bdt),
+        #     basf2_mva.vector(*test_samples),
+        #     'ntuple', expert)
 
 
 @b2luigi.inherits(ValidationTraining)
