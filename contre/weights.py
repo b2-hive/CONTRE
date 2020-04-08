@@ -15,10 +15,10 @@ def get_weights(expert, normalize_to):
         normalize_to (float): normalize the weights,
             if 0: no normalization.
     """
-    key_xml = expert.keys()[1]
-    key_EventType = expert.keys()[2]
+    key_xml = expert.keys()[0]
+    key_EventType = expert.keys()[1]
     assert key_EventType.endswith('EventType')
-    assert expert.at[0, key_EventType] == 0  # removed output belongig to data?
+    # assert expert.at[0, key_EventType] == 0  # removed output belongig to data?
 
     expert['weight'] = ((expert[key_xml]) / (1 - expert[key_xml]))
 

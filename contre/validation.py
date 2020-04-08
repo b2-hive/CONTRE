@@ -86,7 +86,7 @@ class ValidationTraining(b2luigi.Task):
         yield self.add_to_output('bdt.xml')
         # yield self.add_to_output('expert.root')
 
-    @b2luigi.on_temporary_files
+    # @b2luigi.on_temporary_files
     def run(self):
         bdt = self.get_output_file_name('bdt.xml')
         # expert = self.get_output_file_name('expert.root')
@@ -117,6 +117,35 @@ class ValidationTraining(b2luigi.Task):
 
 
 @b2luigi.inherits(ValidationTraining)
+class ValidationExpert(b2luigi.Task):
+    """Apply trained BDT to test sample.
+
+    Parameters: See ValidationTraining
+    Output: expert.root
+    """
+    queue = "sx"
+
+    def requires(self):
+        yield self.clone_parent()
+        # for test samples also require all split samples
+        yield ValidationTraining.requires(self)
+
+    def output(self):
+        yield self.add_to_output('expert.root')
+
+    def run(self):
+        bdt = self.get_input_file_names('bdt.xml')
+        expert = self.get_output_file_name('expert.root')
+
+        test_samples = self.get_input_file_names('test.root')
+
+        basf2_mva.expert(
+            basf2_mva.vector(*bdt),
+            basf2_mva.vector(*test_samples),
+            'ntuple', expert)
+
+
+@b2luigi.inherits(ValidationExpert)
 class ValidationReweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the validation training.
 
@@ -124,6 +153,7 @@ class ValidationReweighting(b2luigi.Task):
         normalize_to (float): Scale weights to match the ratio data / mc used
             for training.
     """
+    normalize_to = b2luigi.FloatParameter()
 
     def requires(self):
         yield self.clone_parent()
@@ -176,11 +206,17 @@ class DelegateValidation(b2luigi.Task):
             **validation_parameters
         )
         yield self.clone(
+            ValidationExpert,
+            ntuple_files=parameters.get("off_res_files"),
+            training_variables=parameters.get("training_variables"),
+            **validation_parameters
+        )
+        yield self.clone(
             ValidationReweighting,
             ntuple_files=parameters.get("off_res_files"),
             training_variables=parameters.get("training_variables"),
             **validation_parameters,
-            normalize_to=parameters.get("normalize_to")
+            **parameters.get("reweighting_parameters")
         )
 
     def output(self):
