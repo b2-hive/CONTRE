@@ -36,7 +36,6 @@ class SplitSample(b2luigi.Task):
     ntuple_file = b2luigi.Parameter(hashed=True)
     train_size = b2luigi.FloatParameter()
     test_size = b2luigi.FloatParameter()
-    queue = "sx"
 
     def output(self):
         yield self.add_to_output('train.root')
