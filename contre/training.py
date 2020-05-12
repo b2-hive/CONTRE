@@ -55,25 +55,22 @@ class SplitSample(b2luigi.Task):
 
 
 class Training(b2luigi.Task):
-    """Perform training for reweighting on train sample.
-
-    Train bdt and save bdt_weightfile to `bdt.xml`. Apply BDT to test samples
-    and save result as `expert.root`.
+    """Train bdt on train samples and save bdt_weightfile to `bdt.xml`.
 
     Parameters:
-        ntuple_files (list): files to be used for training
-        training_variables (list): variables used for training
-        train_size: Float, size of train sample
+        off_res_files (list): list of off res. files to be used for training,
+        training_variables (list): variables used for training,
+        train_size: Float, size of train sample,
         test_size: Float, size of test sample
     """
-    ntuple_files = b2luigi.ListParameter(hashed=True)
+    off_res_files = b2luigi.ListParameter(hashed=True)
     training_variables = b2luigi.ListParameter(hashed=True)
     train_size = b2luigi.FloatParameter()
     test_size = b2luigi.FloatParameter()
     queue = "sx"
 
     def requires(self):
-        for ntuple_file in self.ntuple_files:
+        for ntuple_file in self.off_res_files:
             yield self.clone(
                 SplitSample,
                 ntuple_file=ntuple_file,

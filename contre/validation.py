@@ -8,7 +8,7 @@ from contre.weights import get_weights
 
 @b2luigi.inherits(Training)
 class ValidationExpert(b2luigi.Task):
-    """Apply trained BDT to test sample.
+    """Apply BDT to test samples and save result as `expert.root`.
 
     Parameters: See Training
     Output: expert.root
@@ -17,6 +17,7 @@ class ValidationExpert(b2luigi.Task):
 
     def requires(self):
         yield self.clone_parent()
+
         # for test samples also require all split samples
         yield Training.requires(self)
 

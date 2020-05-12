@@ -3,12 +3,6 @@
 
     "result_path": "example_output",
 
-    "training_variables": [
-        "foxWolframR1",
-        "cleoConeThrust1",
-        "harmonicMomentThrust1"
-    ],
-
     "off_res_files": [
         "example_input/ntuple_off_res_data.root",
         "example_input/ntuple_off_res_ccbar.root",
@@ -20,9 +14,14 @@
     "on_res_files": [
     ],
 
-    "validation_parameters": {
+    "training_parameters": {
         "train_size": 0.9,
-        "test_size": 0.1
+        "test_size": 0.1,
+        "training_variables": [
+            "foxWolframR1",
+            "cleoConeThrust1",
+            "harmonicMomentThrust1"
+        ],
     },
 
     "bootstraping_parameters": {

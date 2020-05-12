@@ -8,6 +8,12 @@ from contre.training import Training
 
 @b2luigi.requires(Training)
 class Expert(b2luigi.Task):
+    """Apply bdt to on resonance Data and save the result as `expert.root`.
+
+    Parameters:
+        off_res_files, training_variables, train_size, test_size: see Training,
+        on_res_files (list): List of str with on resonance files.
+    """
     on_res_files = b2luigi.ListParameter(hashed=True)
     queue = "sx"
 
@@ -24,18 +30,17 @@ class Expert(b2luigi.Task):
             'ntuple', expert)
 
 
-@b2luigi.inherits(Expert)
+@b2luigi.requires(Expert)
 class Reweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the validation training.
 
-    Parameters: see ValidationTraining
+    Parameters:
+        off_res_files, on_res_files, training_variables, train_size, test_size:
+            see Training,
         normalize_to (float): Scale weights to match the ratio data / mc used
             for training.
     """
     normalize_to = b2luigi.FloatParameter()
-
-    def requires(self):
-        yield self.clone_parent()
 
     def output(self):
         yield self.add_to_output('weights.root')
@@ -72,28 +77,29 @@ class DelegateReweighting(b2luigi.Task):
             parameters = json.load(parameter_file)
         off_res_files = parameters.get("off_res_files")
         on_res_files = parameters.get("on_res_files")
-        training_variables = parameters.get("training_variables")
+        training_parameters = parameters.get("training_parameters")
 
         yield self.clone(
             Training,
             off_res_files=off_res_files,
-            training_variables=training_variables,
+            **training_parameters
         )
+
         if len(on_res_files) != 0:
             yield self.clone(
                 Reweighting,
                 off_res_files=off_res_files,
                 on_res_files=on_res_files,
-                training_variables=training_variables,
+                **training_parameters,
                 **parameters.get("reweighting_parameters")
             )
         else:
             print(
                 "No on-resonance files are given."
-                "Only training  and no reweighting can be executed.")
+                "Only training and no reweighting can be executed.")
 
     def output(self):
-        yield self.add_to_output('validation_results.json')
+        yield self.add_to_output('reweighting_results.json')
 
     def run(self):
         bdt = self.get_input_file_names('bdt.xml')
