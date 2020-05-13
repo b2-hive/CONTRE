@@ -1,4 +1,4 @@
-# ContRe
+# CONTRE
 CONTinuum REweighting
 
 Improve your continuum MC sample.
