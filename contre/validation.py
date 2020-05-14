@@ -56,7 +56,7 @@ class ValidationReweighting(b2luigi.Task):
         expert = root_pandas.read_root(
             self.get_input_file_names('expert.root'))
         weights = get_weights(
-            expert=expert,
+            expert_df=expert,
             normalize_to=self.normalize_to)
         root_pandas.to_root(
             weights,
@@ -81,30 +81,28 @@ class DelegateValidation(b2luigi.Task):
     def requires(self):
         with open(self.parameter_file) as parameter_file:
             parameters = json.load(parameter_file)
-            validation_parameters = parameters.get("validation_parameters")
+            training_parameters = parameters.get("training_parameters")
         for off_res_file in parameters.get('off_res_files'):
             yield self.clone(
                 SplitSample,
                 ntuple_file=off_res_file,
-                **validation_parameters
+                train_size=training_parameters.get("train_size"),
+                test_size=training_parameters.get("test_size")
             )
         yield self.clone(
             Training,
-            ntuple_files=parameters.get("off_res_files"),
-            training_variables=parameters.get("training_variables"),
-            **validation_parameters
+            off_res_files=parameters.get("off_res_files"),
+            **training_parameters
         )
         yield self.clone(
             ValidationExpert,
-            ntuple_files=parameters.get("off_res_files"),
-            training_variables=parameters.get("training_variables"),
-            **validation_parameters
+            off_res_files=parameters.get("off_res_files"),
+            **training_parameters
         )
         yield self.clone(
             ValidationReweighting,
-            ntuple_files=parameters.get("off_res_files"),
-            training_variables=parameters.get("training_variables"),
-            **validation_parameters,
+            off_res_files=parameters.get("off_res_files"),
+            **training_parameters,
             **parameters.get("reweighting_parameters")
         )
 
@@ -125,7 +123,7 @@ class DelegateValidation(b2luigi.Task):
             "test_samples": test_samples,
             "bdt": bdt,
             "expert": expert,
-            "weights": weights
+            "validation_weights": weights
         }
 
         with open(self.get_output_file_name(

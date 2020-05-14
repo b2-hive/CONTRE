@@ -1,12 +1,15 @@
 import numpy as np
 import pandas as pd
 from root_pandas import to_root
+import matplotlib.pyplot as plt
 
-size_mc = 5000000
-size_data = 100000
-frac_a = 0.8
-frac_b = 1 - frac_a
-frac_offres = 0.5
+if __name__ == "__main__":
+    # size_mc = 500000
+    # size_data = 10000
+    # frac_a = 0.8
+    # frac_b = 1 - frac_a
+    # frac_offres = 0.5
+    pass
 
 # GENERATE DATA
 print(
@@ -33,6 +36,14 @@ data["variable2"] = np.random.uniform(size=len(data))
 componentA["variable2"] = np.random.uniform(size=int(size_mc*frac_a))
 componentB["variable2"] = np.random.uniform(size=int(size_mc*frac_b))
 
+# candidate and EventType
+data["__candidate__"] = [0]*len(data)
+componentA["__candidate__"] = [0]*len(componentA)
+componentB["__candidate__"] = [0]*len(componentB)
+
+data["EventType"] = [float(1)]*len(data)
+componentA["EventType"] = [float(0)]*len(componentA)
+componentB["EventType"] = [float(0)]*len(componentB)
 
 # off res
 data_offres = pd.DataFrame()
@@ -50,6 +61,13 @@ data_offres["variable2"] = np.random.uniform(size=len(data_offres))
 componentA_offres["variable2"] = np.random.uniform(
     size=int(size_mc*frac_a*frac_offres))
 
+# candidate and EventType
+data_offres["__candidate__"] = [0]*len(data_offres)
+componentA_offres["__candidate__"] = [0]*len(componentA_offres)
+
+data_offres["EventType"] = [float(1)]*len(data_offres)
+componentA_offres["EventType"] = [float(0)]*len(componentA_offres)
+
 # SAVE DATA
 print("Saving data to 'example_input/<file>.root' ...")
 
@@ -58,3 +76,42 @@ to_root(componentA, "example_input/componentA.root")
 to_root(componentB, "example_input/componentB.root")
 to_root(data_offres, "example_input/data_offres.root")
 to_root(componentA_offres, "example_input/componentA_offres.root")
+
+
+def plot_histograms(variable):
+    """Simple Plot of the example Components."""
+    fig, ax = plt.subplots(1, 2, figsize=[12.8, 4.8])
+
+    # on resonance histogram
+    count, edges = np.histogram(
+        data[variable], bins=30, range=(0, 1))
+
+    bin_width = edges[1] - edges[0]
+    bin_mids = edges[:-1]+bin_width
+    ax[0].plot(
+        bin_mids, count, color="black", marker='.', ls="",
+        label="data")
+
+    w = size_data/size_mc
+    ax[0].hist(
+        [componentA[variable], componentB[variable]],
+        bins=30, range=(0, 1), stacked=True,
+        weights=[[w]*len(componentA), [w]*len(componentB)],
+        label=["componentA", "componentB"])
+
+    ax[0].set_title("On resonance")
+    ax[0].legend()
+
+    # off resonance histogram
+    count, edges = np.histogram(
+        data_offres[variable], bins=30, range=(0, 1))
+    ax[1].plot(
+        bin_mids, count, color="black", marker='.', ls="")
+
+    ax[1].hist(
+        componentA_offres[variable], bins=30, range=(0, 1),
+        weights=[w]*len(componentA_offres))
+
+    ax[1].set_title("Off resonance")
+
+    plt.show()

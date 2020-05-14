@@ -5,20 +5,20 @@
 
     "off_res_files": [
         "example_input/data_offres.root",
-        "example_input/componentA.root",
+        "example_input/componentA_offres.root"
     ],
 
     "on_res_files": [
         "example_input/data.root",
-        "example_input/componentA.root",
+        "example_input/componentA.root"
     ],
 
     "training_parameters": {
         "train_size": 0.9,
         "test_size": 0.1,
         "training_variables": [
-            "variable1",
-        ],
+            "variable1"
+        ]
     },
 
     "bootstraping_parameters": {

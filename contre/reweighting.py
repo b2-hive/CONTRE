@@ -4,6 +4,7 @@ import basf2_mva
 import b2luigi
 from contre.weights import get_weights
 from contre.training import Training
+from contre.validation import DelegateValidation
 
 
 @b2luigi.requires(Training)
@@ -49,7 +50,7 @@ class Reweighting(b2luigi.Task):
         expert = root_pandas.read_root(
             self.get_input_file_names('expert.root'))
         weights = get_weights(
-            expert=expert,
+            expert_df=expert,
             normalize_to=self.normalize_to)
         root_pandas.to_root(
             weights,
@@ -79,11 +80,8 @@ class DelegateReweighting(b2luigi.Task):
         on_res_files = parameters.get("on_res_files")
         training_parameters = parameters.get("training_parameters")
 
-        yield self.clone(
-            Training,
-            off_res_files=off_res_files,
-            **training_parameters
-        )
+        # require SplitSample Training and ValidationReweighting
+        DelegateValidation.requires(self)
 
         if len(on_res_files) != 0:
             yield self.clone(
@@ -96,12 +94,15 @@ class DelegateReweighting(b2luigi.Task):
         else:
             print(
                 "No on-resonance files are given."
-                "Only training and no reweighting can be executed.")
+                "Only test samples will be reweighted.")
 
     def output(self):
-        yield self.add_to_output('reweighting_results.json')
+        yield self.add_to_output('validation_results.json')
+        yield self.add_to_output('results.json')
 
     def run(self):
+        # write out file with the reweighted test samples
+        DelegateValidation.run(self)
         bdt = self.get_input_file_names('bdt.xml')
 
         results = {
@@ -112,7 +113,7 @@ class DelegateReweighting(b2luigi.Task):
             results['weights'] = weights
 
         with open(self.get_output_file_name(
-                'validation_results.json'), 'w') as file:
+                'results.json'), 'w') as file:
             json.dump(results, file)
 
 
