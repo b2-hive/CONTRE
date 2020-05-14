@@ -15,4 +15,5 @@
     - normalisaton
     - event counting
 
-- Automatically also do the validation (application of Expert to test sample)
+- treenames im training ändern
+- json nach yaml?

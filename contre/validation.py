@@ -95,11 +95,6 @@ class DelegateValidation(b2luigi.Task):
             **training_parameters
         )
         yield self.clone(
-            ValidationExpert,
-            off_res_files=parameters.get("off_res_files"),
-            **training_parameters
-        )
-        yield self.clone(
             ValidationReweighting,
             off_res_files=parameters.get("off_res_files"),
             **training_parameters,
@@ -114,7 +109,6 @@ class DelegateValidation(b2luigi.Task):
         test_samples = self.get_input_file_names('test.root')
 
         bdt = self.get_input_file_names('bdt.xml')
-        expert = self.get_input_file_names('expert.root')
         weights = self.get_input_file_names('weights.root')
 
         results = {
@@ -122,7 +116,6 @@ class DelegateValidation(b2luigi.Task):
             "train_samples": train_samples,
             "test_samples": test_samples,
             "bdt": bdt,
-            "expert": expert,
             "validation_weights": weights
         }
 

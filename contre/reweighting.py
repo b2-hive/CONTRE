@@ -3,8 +3,8 @@ import root_pandas
 import basf2_mva
 import b2luigi
 from contre.weights import get_weights
-from contre.training import Training
-from contre.validation import DelegateValidation
+from contre.training import Training, SplitSample
+from contre.validation import ValidationReweighting, DelegateValidation
 
 
 @b2luigi.requires(Training)
@@ -81,7 +81,27 @@ class DelegateReweighting(b2luigi.Task):
         training_parameters = parameters.get("training_parameters")
 
         # require SplitSample Training and ValidationReweighting
-        DelegateValidation.requires(self)
+        with open(self.parameter_file) as parameter_file:
+            parameters = json.load(parameter_file)
+            training_parameters = parameters.get("training_parameters")
+        for off_res_file in parameters.get('off_res_files'):
+            yield self.clone(
+                SplitSample,
+                ntuple_file=off_res_file,
+                train_size=training_parameters.get("train_size"),
+                test_size=training_parameters.get("test_size")
+            )
+        yield self.clone(
+            Training,
+            off_res_files=parameters.get("off_res_files"),
+            **training_parameters
+        )
+        yield self.clone(
+            ValidationReweighting,
+            off_res_files=parameters.get("off_res_files"),
+            **training_parameters,
+            **parameters.get("reweighting_parameters")
+        )
 
         if len(on_res_files) != 0:
             yield self.clone(
@@ -101,6 +121,10 @@ class DelegateReweighting(b2luigi.Task):
         yield self.add_to_output('results.json')
 
     def run(self):
+        with open(self.parameter_file) as parameter_file:
+            parameters = json.load(parameter_file)
+        on_res_files = parameters.get("on_res_files")
+
         # write out file with the reweighted test samples
         DelegateValidation.run(self)
         bdt = self.get_input_file_names('bdt.xml')
@@ -108,7 +132,7 @@ class DelegateReweighting(b2luigi.Task):
         results = {
             "bdt": bdt,
         }
-        if len(self.on_res_files) != 0:
+        if len(on_res_files) != 0:
             weights = self.get_input_file_names('weights.root')
             results['weights'] = weights
 

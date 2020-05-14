@@ -71,11 +71,11 @@ componentA_offres["EventType"] = [float(0)]*len(componentA_offres)
 # SAVE DATA
 print("Saving data to 'example_input/<file>.root' ...")
 
-to_root(data, "example_input/data.root")
-to_root(componentA, "example_input/componentA.root")
-to_root(componentB, "example_input/componentB.root")
-to_root(data_offres, "example_input/data_offres.root")
-to_root(componentA_offres, "example_input/componentA_offres.root")
+to_root(data, "example_input/data.root", key="ntuple")
+to_root(componentA, "example_input/componentA.root", key="ntuple")
+to_root(componentB, "example_input/componentB.root", key="ntuple")
+to_root(data_offres, "example_input/data_offres.root", key="ntuple")
+to_root(componentA_offres, "example_input/componentA_offres.root", key="ntuple")
 
 
 def plot_histograms(variable):
