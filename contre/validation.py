@@ -22,11 +22,11 @@ class ValidationExpert(b2luigi.Task):
         yield Training.requires(self)
 
     def output(self):
-        yield self.add_to_output('expert.root')
+        yield self.add_to_output('validation_expert.root')
 
     def run(self):
         bdt = self.get_input_file_names('bdt.xml')
-        expert = self.get_output_file_name('expert.root')
+        expert = self.get_output_file_name('validation_expert.root')
 
         test_samples = self.get_input_file_names('test.root')
 
@@ -50,17 +50,17 @@ class ValidationReweighting(b2luigi.Task):
         yield self.clone_parent()
 
     def output(self):
-        yield self.add_to_output('weights.root')
+        yield self.add_to_output('validation_weights.root')
 
     def run(self):
         expert = root_pandas.read_root(
-            self.get_input_file_names('expert.root'))
+            self.get_input_file_names('validation_expert.root'))
         weights = get_weights(
             expert_df=expert,
             normalize_to=self.normalize_to)
         root_pandas.to_root(
             weights,
-            self.get_output_file_name('weights.root'),
+            self.get_output_file_name('validation_weights.root'),
             key='weights')
 
 
@@ -109,14 +109,15 @@ class DelegateValidation(b2luigi.Task):
         test_samples = self.get_input_file_names('test.root')
 
         bdt = self.get_input_file_names('bdt.xml')
-        weights = self.get_input_file_names('weights.root')
+        validation_weights = self.get_input_file_names(
+            'validation_weights.root')
 
         results = {
             "parameter_file": self.parameter_file,
             "train_samples": train_samples,
             "test_samples": test_samples,
             "bdt": bdt,
-            "validation_weights": weights
+            "validation_weights": validation_weights
         }
 
         with open(self.get_output_file_name(
