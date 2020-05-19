@@ -21,9 +21,11 @@ componentA = pd.DataFrame()
 componentB = pd.DataFrame()
 
 # variable1
-tmp_data = np.random.triangular(-1, 1, 1, size=int(size_data*frac_a*1.3))
+tmp_data = np.random.triangular(0, 1, 1, size=int(size_data*frac_a*0.3))
 tmp_data = np.append(
     tmp_data, np.random.normal(0.3, 0.1, int(size_data*frac_b)))
+tmp_data = np.append(
+    tmp_data, np.random.uniform(size=int(size_data*frac_a*0.7)))
 data["variable1"] = tmp_data
 data = data.loc[data["variable1"] >= 0]
 
@@ -50,8 +52,11 @@ data_offres = pd.DataFrame()
 componentA_offres = pd.DataFrame()
 
 # variable1
-data_offres["variable1"] = np.random.triangular(
-    -1, 1, 1, size=int(size_data*frac_a*frac_offres*1.3))
+tmp_data = np.random.triangular(
+    0, 1, 1, size=int(size_data*frac_a*frac_offres*0.3))
+tmp_data = np.append(
+    tmp_data, np.random.uniform(size=int(size_data*frac_a*frac_offres*0.7)))
+data_offres["variable1"] = tmp_data
 data_offres = data_offres.loc[data_offres["variable1"] > 0]
 componentA_offres["variable1"] = np.random.uniform(
     size=int(size_mc*frac_a*frac_offres))
