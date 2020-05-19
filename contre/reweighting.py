@@ -28,7 +28,7 @@ class Expert(b2luigi.Task):
         basf2_mva.expert(
             basf2_mva.vector(*bdt),
             basf2_mva.vector(*self.on_res_files),
-            'ntuple', expert)
+            'variables', expert)
 
 
 @b2luigi.requires(Expert)
