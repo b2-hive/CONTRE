@@ -1,11 +1,10 @@
-import json
+import yaml
 import b2luigi
-from contre.validation import DelegateValidation
 from contre.reweighting import DelegateReweighting
 
-parameter_file = 'example_parameters.json'
-with open(parameter_file) as file:
-    parameters = json.load(file)
+parameter_file = 'example_parameters.yaml'
+with open(parameter_file) as f:
+    parameters = yaml.load(f)
 
 b2luigi.set_setting(
     "result_path",

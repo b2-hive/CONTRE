@@ -14,11 +14,20 @@ def get_weights(expert_df, normalize_to):
         normalize_to (float): normalize the weights,
             if 0: no normalization.
     """
-    key_xml = expert_df.keys()[0]
+
+    # TODO: rename columns of the dataframe
+    key_q = expert_df.keys()[0]  # classifier output
     key_EventType = expert_df.keys()[1]
     assert key_EventType.endswith('EventType')
 
-    expert_df['weight'] = ((expert_df[key_xml]) / (1 - expert_df[key_xml]))
+    # rename columns
+    expert_df = expert_df.rename(
+        columns={
+            key_q: "q",
+            key_EventType: "EventType"}
+    )
+
+    expert_df['weight'] = ((expert_df["q"]) / (1 - expert_df["q"]))
 
     if normalize_to != 0:
         weight_mean = mean(expert_df['weight'])

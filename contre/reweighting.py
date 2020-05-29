@@ -1,4 +1,5 @@
 import json
+import yaml
 import root_pandas
 import basf2_mva
 import b2luigi
@@ -28,30 +29,47 @@ class Expert(b2luigi.Task):
         basf2_mva.expert(
             basf2_mva.vector(*bdt),
             basf2_mva.vector(*self.on_res_files),
-            'variables', expert)
+            'ntuple', expert)
 
 
-@b2luigi.requires(Expert)
+@b2luigi.inherits(Expert)
 class Reweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the validation training.
+
+    Normalisaton of weights is taken from the validaton training.
 
     Parameters:
         off_res_files, on_res_files, training_variables, train_size, test_size:
             see Training,
-        normalize_to (float): Scale weights to match the ratio data / mc used
-            for training.
     """
-    normalize_to = b2luigi.FloatParameter()
+
+    def requires(self):
+        yield self.clone_parent()
+        yield self.clone(
+            ValidationReweighting,
+            off_res_files=self.off_res_files,
+            training_variables=self.training_variables,
+            train_size=self.train_size,
+            test_size=self.test_size
+        )
 
     def output(self):
         yield self.add_to_output('weights.root')
 
     def run(self):
+        # calculate the normalisation from the valadiaton reweighting
+        validation_weights = root_pandas.read_root(
+            self.get_input_file_names("validation_weights.root"))
+
+        len_data = len(
+            validation_weights[validation_weights["EventType"] == 1])
+        len_mc = len(validation_weights) - len_data
+
         expert = root_pandas.read_root(
             self.get_input_file_names('expert.root'))
         weights = get_weights(
             expert_df=expert,
-            normalize_to=self.normalize_to)
+            normalize_to=len_data/len_mc)
         root_pandas.to_root(
             weights,
             self.get_output_file_name('weights.root'),
@@ -75,15 +93,13 @@ class DelegateReweighting(b2luigi.Task):
 
     def requires(self):
         with open(self.parameter_file) as parameter_file:
-            parameters = json.load(parameter_file)
+            parameters = yaml.load(parameter_file)
         off_res_files = parameters.get("off_res_files")
         on_res_files = parameters.get("on_res_files")
         training_parameters = parameters.get("training_parameters")
 
         # require SplitSample Training and ValidationReweighting
-        with open(self.parameter_file) as parameter_file:
-            parameters = json.load(parameter_file)
-            training_parameters = parameters.get("training_parameters")
+        training_parameters = parameters.get("training_parameters")
         for off_res_file in parameters.get('off_res_files'):
             yield self.clone(
                 SplitSample,
@@ -94,13 +110,14 @@ class DelegateReweighting(b2luigi.Task):
         yield self.clone(
             Training,
             off_res_files=parameters.get("off_res_files"),
+            training_variables=parameters["training_variables"],
             **training_parameters
         )
         yield self.clone(
             ValidationReweighting,
             off_res_files=parameters.get("off_res_files"),
-            **training_parameters,
-            **parameters.get("reweighting_parameters")
+            training_variables=parameters["training_variables"],
+            **training_parameters
         )
 
         if len(on_res_files) != 0:
@@ -108,8 +125,8 @@ class DelegateReweighting(b2luigi.Task):
                 Reweighting,
                 off_res_files=off_res_files,
                 on_res_files=on_res_files,
+                training_variables=parameters["training_variables"],
                 **training_parameters,
-                **parameters.get("reweighting_parameters")
             )
         else:
             print(
@@ -122,7 +139,7 @@ class DelegateReweighting(b2luigi.Task):
 
     def run(self):
         with open(self.parameter_file) as parameter_file:
-            parameters = json.load(parameter_file)
+            parameters = yaml.load(parameter_file)
         on_res_files = parameters.get("on_res_files")
 
         # write out file with the reweighted test samples
@@ -139,25 +156,3 @@ class DelegateReweighting(b2luigi.Task):
         with open(self.get_output_file_name(
                 'results.json'), 'w') as file:
             json.dump(results, file)
-
-
-class ExpertFromXml(b2luigi.Task):
-    """Apply expert on On_res_files, without training beforehand.
-
-    Parameters:
-        bdt (str): Path to saved bdt weightfile
-        on_res_files (list): List with ntuple file.
-    """
-    bdt = b2luigi.Parameter()
-    on_res_files = b2luigi.ListParameter(hashed=True)
-
-    def output(self):
-        yield self.add_to_output("expert.root")
-
-    def run(self):
-        expert = self.get_output_file_name('expert.root')
-
-        basf2_mva.expert(
-            basf2_mva.vector(self.bdt),
-            basf2_mva.vector(*self.on_res_files),
-            'ntuple', expert)

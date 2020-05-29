@@ -41,10 +41,7 @@ class ValidationReweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the validation training.
 
     Parameters: see ValidationTraining
-        normalize_to (float): Scale weights to match the ratio data / mc used
-            for training.
     """
-    normalize_to = b2luigi.FloatParameter()
 
     def requires(self):
         yield self.clone_parent()
@@ -55,9 +52,17 @@ class ValidationReweighting(b2luigi.Task):
     def run(self):
         expert = root_pandas.read_root(
             self.get_input_file_names('validation_expert.root'))
+
+        # normalize to len_data/len_mc (off-res.)
+        key_EventType = expert.keys()[1]
+        len_data = len(
+            expert[expert[key_EventType] == 1])
+        len_mc = len(expert) - len_data
+
         weights = get_weights(
             expert_df=expert,
-            normalize_to=self.normalize_to)
+            normalize_to=len_data/len_mc)
+
         root_pandas.to_root(
             weights,
             self.get_output_file_name('validation_weights.root'),

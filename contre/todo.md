@@ -1,19 +1,16 @@
 # Todos:
 
-- Example:
-    - generation of data
-    - commented Example file or Anleitung
-    - notebook?
-
-- On res training:
-    - bugfixing, testing,
-
-- Sphinx Documentation? Good Tutorial. See Example
+- Example and Documentation
+    - make generation of data better
+    - commented Example notebook (better)
+    - Improve Documentation
+    - Anleitung without jupyter in Documentation start page
 
 - Weights
-    - better handling
-    - normalisaton
+    - check normalisaton
     - event counting
 
-- treenames im training ändern
-- json nach yaml?
+
+- extend `**training variables`
+    - hyperparameter
+    - treenames im training ändern

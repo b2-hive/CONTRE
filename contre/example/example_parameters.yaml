@@ -1,0 +1,31 @@
+# you can find your results in <result_path>/name=<name>
+name: my_example
+result_path: example_output
+
+# path to all off-resoance data and MC ntuple files
+off_res_files: 
+    - example_input/data_offres.root
+    - example_input/componentA_offres.root
+
+# path to on-resonance MC to be reweighted (i.e. Continuum)
+on_res_files:
+    - example_input/componentA.root
+
+# name of the tree in the ntuple root file
+tree_name: variables
+
+# Luminosity off-resonance data / luminosity  on-resonance data.
+# If set to 0 the reweighted MC will correspond to the luminosity of the 
+# off-resonance data in this case and can be adjusted, later on.
+ratio_off_res: 0
+
+# List of the variables used for training
+training_variables:
+    - variable1
+
+
+# you can adjust the parameters of the training or take the following
+# default values
+training_parameters: 
+    train_size: 0.9
+    test_size: 0.1
