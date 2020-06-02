@@ -3,13 +3,11 @@ import pandas as pd
 from root_pandas import to_root
 import matplotlib.pyplot as plt
 
-if __name__ == "__main__":
-    # size_mc = 500000
-    # size_data = 10000
-    # frac_a = 0.8
-    # frac_b = 1 - frac_a
-    # frac_offres = 0.5
-    pass
+size_mc = 500000
+size_data = 10000
+frac_a = 0.8
+frac_b = 1 - frac_a
+frac_offres = 0.5
 
 # GENERATE DATA
 print(
@@ -76,11 +74,11 @@ componentA_offres["EventType"] = [float(0)]*len(componentA_offres)
 # SAVE DATA
 print("Saving data to 'example_input/<file>.root' ...")
 
-to_root(data, "example_input/data.root", key="ntuple")
-to_root(componentA, "example_input/componentA.root", key="ntuple")
-to_root(componentB, "example_input/componentB.root", key="ntuple")
-to_root(data_offres, "example_input/data_offres.root", key="ntuple")
-to_root(componentA_offres, "example_input/componentA_offres.root", key="ntuple")
+to_root(data, "example_input/data.root", key="variables")
+to_root(componentA, "example_input/componentA.root", key="variables")
+to_root(componentB, "example_input/componentB.root", key="variables")
+to_root(data_offres, "example_input/data_offres.root", key="variables")
+to_root(componentA_offres, "example_input/componentA_offres.root", key="variables")
 
 
 def plot_histograms(variable):

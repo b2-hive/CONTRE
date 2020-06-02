@@ -29,3 +29,7 @@ training_variables:
 training_parameters: 
     train_size: 0.9
     test_size: 0.1
+    # the following variables are the basf2 default values
+    nTrees: 100
+    shrinkage: 0.2
+    nLevels: 3
