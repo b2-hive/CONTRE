@@ -13,7 +13,8 @@ class Expert(b2luigi.Task):
     """Apply bdt to on resonance Data and save the result as `expert.root`.
 
     Parameters:
-        off_res_files, training_variables, train_size, test_size: see Training,
+        off_res_files, tree_name, training_variables, training_parameters:
+            see Training,
         on_res_files (list): List of str with on resonance files.
     """
     on_res_files = b2luigi.ListParameter(hashed=True)
@@ -29,7 +30,7 @@ class Expert(b2luigi.Task):
         basf2_mva.expert(
             basf2_mva.vector(*bdt),
             basf2_mva.vector(*self.on_res_files),
-            'ntuple', expert)
+            self.tree_name, expert)
 
 
 @b2luigi.inherits(Expert)
@@ -39,7 +40,7 @@ class Reweighting(b2luigi.Task):
     Normalisaton of weights is taken from the validaton training.
 
     Parameters:
-        off_res_files, on_res_files, training_variables, train_size, test_size:
+        off_res_files, on_res_files, training_variables, training_parameters:
             see Training,
     """
 
@@ -49,8 +50,7 @@ class Reweighting(b2luigi.Task):
             ValidationReweighting,
             off_res_files=self.off_res_files,
             training_variables=self.training_variables,
-            train_size=self.train_size,
-            test_size=self.test_size
+            **self.training_parameters
         )
 
     def output(self):
@@ -73,7 +73,7 @@ class Reweighting(b2luigi.Task):
         root_pandas.to_root(
             weights,
             self.get_output_file_name('weights.root'),
-            key='weights')
+            key=self.tree_name)
 
 
 class DelegateReweighting(b2luigi.Task):
@@ -104,6 +104,7 @@ class DelegateReweighting(b2luigi.Task):
             yield self.clone(
                 SplitSample,
                 ntuple_file=off_res_file,
+                tree_name=parameters["tree_name"],
                 train_size=training_parameters.get("train_size"),
                 test_size=training_parameters.get("test_size")
             )
@@ -111,13 +112,15 @@ class DelegateReweighting(b2luigi.Task):
             Training,
             off_res_files=parameters.get("off_res_files"),
             training_variables=parameters["training_variables"],
-            **training_parameters
+            tree_name=parameters["tree_name"],
+            training_parameters=training_parameters
         )
         yield self.clone(
             ValidationReweighting,
             off_res_files=parameters.get("off_res_files"),
+            tree_name=parameters["tree_name"],
             training_variables=parameters["training_variables"],
-            **training_parameters
+            training_parameters=training_parameters
         )
 
         if len(on_res_files) != 0:
@@ -125,8 +128,9 @@ class DelegateReweighting(b2luigi.Task):
                 Reweighting,
                 off_res_files=off_res_files,
                 on_res_files=on_res_files,
+                tree_name=parameters["tree_name"],
                 training_variables=parameters["training_variables"],
-                **training_parameters,
+                training_parameters=training_parameters,
             )
         else:
             print(

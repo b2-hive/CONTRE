@@ -33,14 +33,14 @@ class ValidationExpert(b2luigi.Task):
         basf2_mva.expert(
             basf2_mva.vector(*bdt),
             basf2_mva.vector(*test_samples),
-            'ntuple', expert)
+            self.tree_name, expert)
 
 
 @b2luigi.inherits(ValidationExpert)
 class ValidationReweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the validation training.
 
-    Parameters: see ValidationTraining
+    Parameters: see Training
     """
 
     def requires(self):
@@ -91,20 +91,22 @@ class DelegateValidation(b2luigi.Task):
             yield self.clone(
                 SplitSample,
                 ntuple_file=off_res_file,
+                tree_name=parameters["tree_name"],
                 train_size=training_parameters.get("train_size"),
                 test_size=training_parameters.get("test_size")
             )
         yield self.clone(
             Training,
             off_res_files=parameters.get("off_res_files"),
-            **training_parameters
+            tree_name=parameters["tree_name"],
+            training_parameters=training_parameters
         )
         yield self.clone(
             ValidationReweighting,
             off_res_files=parameters.get("off_res_files"),
-            **training_parameters,
-            **parameters.get("reweighting_parameters")
-        )
+            tree_name=parameters["tree_name"],
+            training_parameters=training_parameters,
+            )
 
     def output(self):
         yield self.add_to_output('validation_results.json')

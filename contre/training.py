@@ -33,6 +33,7 @@ class SplitSample(b2luigi.Task):
         test_size (float): size of test sample
     """
     ntuple_file = b2luigi.Parameter(hashed=True)
+    tree_name = b2luigi.Parameter()
     train_size = b2luigi.FloatParameter()
     test_size = b2luigi.FloatParameter()
     queue = "sx"
@@ -49,9 +50,9 @@ class SplitSample(b2luigi.Task):
 
         # Store as Rootfile
         root_pandas.to_root(
-            train, self.get_output_file_name('train.root'), key='ntuple')
+            train, self.get_output_file_name('train.root'), key=self.tree_name)
         root_pandas.to_root(
-            test, self.get_output_file_name('test.root'), key='ntuple')
+            test, self.get_output_file_name('test.root'), key=self.tree_name)
 
 
 class Training(b2luigi.Task):
@@ -59,43 +60,45 @@ class Training(b2luigi.Task):
 
     Parameters:
         off_res_files (list): list of off res. files to be used for training,
+        tree_name (str): name of the tree in the root_file,
         training_variables (list): variables used for training,
-        train_size: Float, size of train sample,
-        test_size: Float, size of test sample
+        training_parameters (dict): train- and test size, BDT hypermaremeters.
     """
     off_res_files = b2luigi.ListParameter(hashed=True)
+    tree_name = b2luigi.ListParameter()
     training_variables = b2luigi.ListParameter(hashed=True)
-    train_size = b2luigi.FloatParameter()
-    test_size = b2luigi.FloatParameter()
+    training_parameters = b2luigi.DictParameter(hashed=True)
     queue = "sx"
 
     def requires(self):
+        train_size = self.training_parameters["train_size"]
+        test_size = self.training_parameters["test_size"]
+
         for ntuple_file in self.off_res_files:
             yield self.clone(
                 SplitSample,
                 ntuple_file=ntuple_file,
-                train_size=self.train_size,
-                test_size=self.test_size,)
+                train_size=train_size,
+                test_size=test_size)
 
     def output(self):
         yield self.add_to_output('bdt.xml')
-        # yield self.add_to_output('expert.root')
 
     def run(self):
         bdt = self.get_output_file_name('bdt.xml')
-
         train_samples = self.get_input_file_names('train.root')
 
         # bdt options
         general_options = basf2_mva.GeneralOptions()
-        fastbdt_options = basf2_mva.FastBDTOptions()
-
         general_options.m_datafiles = basf2_mva.vector(*train_samples)
         general_options.m_identifier = bdt
-        general_options.m_treename = "ntuple"
+        general_options.m_treename = self.tree_name
         general_options.m_variables = basf2_mva.vector(
             *self.training_variables)
         general_options.m_target_variable = "EventType"
+
+        fastbdt_options = basf2_mva.FastBDTOptions()
+        # TODO: Implement More Fast BDT Options!
 
         # teacher
         basf2_mva.teacher(general_options, fastbdt_options)
