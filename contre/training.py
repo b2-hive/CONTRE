@@ -98,7 +98,13 @@ class Training(b2luigi.Task):
         general_options.m_target_variable = "EventType"
 
         fastbdt_options = basf2_mva.FastBDTOptions()
-        # TODO: Implement More Fast BDT Options!
+        training_parameters = self.training_parameters
+        if training_parameters["nTrees"]:
+            fastbdt_options.m_nTrees = training_parameters["nTrees"]
+        if training_parameters["shrinkage"]:
+            fastbdt_options.m_shrinkage = training_parameters["shrinkage"]
+        if training_parameters["nLevels"]:
+            fastbdt_options.m_nLevels = training_parameters["nLevels"]
 
         # teacher
         basf2_mva.teacher(general_options, fastbdt_options)

@@ -29,7 +29,8 @@ training_variables:
 training_parameters: 
     train_size: 0.9
     test_size: 0.1
-    # the following variables are the basf2 default values
+    # the following variables change the fastBDT hyperparameters
+    # they can be removed
     nTrees: 100
     shrinkage: 0.2
     nLevels: 3
