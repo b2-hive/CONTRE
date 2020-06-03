@@ -5,9 +5,10 @@ from root_pandas import to_root
 if __name__ == "__main__":
     size_mc = 500000
     size_data = 10000
+    size_mc_offres = 150000
+    size_data_offres = 8000
     frac_a = 0.8
     frac_b = 1 - frac_a
-    frac_offres = 0.5
 
     # GENERATE DATA
     print(
@@ -51,18 +52,17 @@ if __name__ == "__main__":
 
     # variable1
     tmp_data = np.random.triangular(
-        0, 1, 1, size=int(size_data*frac_a*frac_offres*0.3))
+        0, 1, 1, size=int(size_data_offres*frac_a*0.3))
     tmp_data = np.append(
-        tmp_data, np.random.uniform(size=int(size_data*frac_a*frac_offres*0.7)))
+        tmp_data, np.random.uniform(size=int(size_data_offres*frac_a*0.7)))
     data_offres["variable1"] = tmp_data
-    data_offres = data_offres.loc[data_offres["variable1"] > 0]
     componentA_offres["variable1"] = np.random.uniform(
-        size=int(size_mc*frac_a*frac_offres))
+        size=int(size_mc_offres*frac_a))
 
     # variable2
     data_offres["variable2"] = np.random.uniform(size=len(data_offres))
     componentA_offres["variable2"] = np.random.uniform(
-        size=int(size_mc*frac_a*frac_offres))
+        size=int(size_mc_offres*frac_a))
 
     # candidate and EventType
     data_offres["__candidate__"] = [0]*len(data_offres)
