@@ -3,19 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CONTRE's documentation!
-==================================
+CONTRE
+======
+**CONT** inumm **RE** weighting.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+This ist the documentation for ``CONTRE``.
+``CONTRE`` is a package for the  sofware framework ``basf2``.
+It can be used to improve the Continuum MC samples by reweighting,
+using off-resonace data.
 
-    modules
 
+.. attention::
+    The package, and this documentation are still under construction.
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
