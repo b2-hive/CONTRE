@@ -15,7 +15,6 @@ def get_weights(expert_df, normalize_to):
             if 0: no normalization.
     """
 
-    # TODO: rename columns of the dataframe
     key_q = expert_df.keys()[0]  # classifier output
     key_EventType = expert_df.keys()[1]
     assert key_EventType.endswith('EventType')
