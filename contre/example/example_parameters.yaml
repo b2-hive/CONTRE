@@ -14,18 +14,11 @@ on_res_files:
 # name of the tree in the ntuple root file
 tree_name: variables
 
-# Luminosity off-resonance data / luminosity  on-resonance data.
-# If set to 0 the reweighted MC will correspond to the luminosity of the 
-# off-resonance data in this case and can be adjusted, later on.
-ratio_off_res: 0
-
 # List of the variables used for training
 training_variables:
     - variable1
 
-
-# you can adjust the parameters of the training or take the following
-# default values
+# to adjust the parameters of the training
 training_parameters: 
     train_size: 0.9
     test_size: 0.1
