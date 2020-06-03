@@ -56,13 +56,13 @@ class SplitSample(b2luigi.Task):
 
 
 class Training(b2luigi.Task):
-    """Train bdt on train samples and save bdt_weightfile to `bdt.xml`.
+    """Train a fastBDT on train samples and save bdt_weightfile to `bdt.xml`.
 
     Parameters:
-        off_res_files (list): list of off res. files to be used for training,
+        off_res_files (list): list of off-res. files to be used for training,
         tree_name (str): name of the tree in the root_file,
         training_variables (list): variables used for training,
-        training_parameters (dict): train- and test size, BDT hypermaremeters.
+        training_parameters (dict): train- and test size, BDT hyper-parameters.
     """
     off_res_files = b2luigi.ListParameter(hashed=True)
     tree_name = b2luigi.ListParameter()

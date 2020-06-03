@@ -10,7 +10,7 @@ from contre.validation import ValidationReweighting, DelegateValidation
 
 @b2luigi.requires(Training)
 class Expert(b2luigi.Task):
-    """Apply bdt to on resonance Data and save the result as `expert.root`.
+    """Apply Bdt to on-resonance Data and save the result as `expert.root`.
 
     Parameters:
         off_res_files, tree_name, training_variables, training_parameters:
@@ -35,13 +35,14 @@ class Expert(b2luigi.Task):
 
 @b2luigi.inherits(Expert)
 class Reweighting(b2luigi.Task):
-    """Calculate weights from the classifier output of the validation training.
+    """Calculate weights from the classifier output of the Expert task.
 
-    Normalisaton of weights is taken from the validaton training.
+    The normalization of the weights is taken from the ValidatonReweigting
+    output.
 
     Parameters:
         off_res_files, on_res_files, training_variables, training_parameters:
-            see Training,
+            see Training.
     """
 
     def requires(self):
@@ -57,7 +58,7 @@ class Reweighting(b2luigi.Task):
         yield self.add_to_output('weights.root')
 
     def run(self):
-        # calculate the normalisation from the valadiaton reweighting
+        # calculate the normalization from ValadiatonReweighting output
         validation_weights = root_pandas.read_root(
             self.get_input_file_names("validation_weights.root"))
 
@@ -79,13 +80,13 @@ class Reweighting(b2luigi.Task):
 class DelegateReweighting(b2luigi.Task):
     """Delegation Task for a Training and application to on resonance Files.
 
-    Requires the Expert and Training task.
-    Use Parameters stored in a json file.
+    Starts all tasks needed for the reweighting of off- and on-resonance
+    samples. Use Parameters stored in the parameter file.
 
     Parameters:
         name (str): Used for sorting, summarized results can be found in
             `<result_folder>/name=<name>/valiation_results.json`
-        parameter_file (str): path to the json file with stored settings
+        parameter_file (str): path to the parameter file
     """
 
     name = b2luigi.Parameter()

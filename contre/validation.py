@@ -38,7 +38,8 @@ class ValidationExpert(b2luigi.Task):
 
 @b2luigi.inherits(ValidationExpert)
 class ValidationReweighting(b2luigi.Task):
-    """Calculate weights from the classifier output of the validation training.
+    """Calculate weights from the classifier output of the ValidationTraining
+    task.
 
     Parameters: see Training
     """
