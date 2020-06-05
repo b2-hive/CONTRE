@@ -10,12 +10,13 @@ from contre.validation import ValidationReweighting, DelegateValidation
 
 @b2luigi.requires(Training)
 class Expert(b2luigi.Task):
-    """Apply Bdt to on-resonance Data and save the result as `expert.root`.
+    """Apply BDT to on-resonance data and save the result as `expert.root`.
 
     Parameters:
         off_res_files, tree_name, training_variables, training_parameters:
             see Training,
-        on_res_files (list): List of str with on resonance files.
+        on_res_files (list): List of str with on-resonance files
+            (only files that should be reweighted, i.e. continuum MC samples).
     """
     on_res_files = b2luigi.ListParameter(hashed=True)
     queue = "sx"
@@ -38,11 +39,17 @@ class Reweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the Expert task.
 
     The normalization of the weights is taken from the ValidatonReweigting
-    output.
+    output, so that the mean of the weights equals the ratio of off-resonance
+    data over off-resonance MC.
+    The integrated luminosity of the reweighted MC sample equals:
+    L(data,off-res.) * L(MC,on-res.) / L(MC,off-res.)
+    and has to be scaled accordingly.
+
 
     Parameters:
-        off_res_files, on_res_files, training_variables, training_parameters:
+        off_res_files, tree_name, training_variables, training_parameters:
             see Training.
+        on_res_files: see Expert.
     """
 
     def requires(self):
@@ -78,13 +85,14 @@ class Reweighting(b2luigi.Task):
 
 
 class DelegateReweighting(b2luigi.Task):
-    """Delegation Task for a Training and application to on resonance Files.
+    """Delegation Task for a Training and application to on-resonance files.
 
     Starts all tasks needed for the reweighting of off- and on-resonance
     samples. Use Parameters stored in the parameter file.
 
     Parameters:
         name (str): Used for sorting, summarized results can be found in
+            `<result_folder>/name=<name>/results.json` and
             `<result_folder>/name=<name>/valiation_results.json`
         parameter_file (str): path to the parameter file
     """

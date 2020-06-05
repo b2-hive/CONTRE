@@ -8,10 +8,11 @@ from contre.weights import get_weights
 
 @b2luigi.inherits(Training)
 class ValidationExpert(b2luigi.Task):
-    """Apply BDT to test samples and save result as `expert.root`.
+    """Apply BDT to test samples and save result as `validaion_expert.root`.
 
-    Parameters: See Training
-    Output: expert.root
+    Parameters:
+        off_res_files, tree_name, training_variables, training_parameters:
+            see Training.
     """
     queue = "sx"
 
@@ -39,9 +40,11 @@ class ValidationExpert(b2luigi.Task):
 @b2luigi.inherits(ValidationExpert)
 class ValidationReweighting(b2luigi.Task):
     """Calculate weights from the classifier output of the ValidationTraining
-    task.
+    task. See also: Reweighting.
 
-    Parameters: see Training
+    Parameters:
+        off_res_files, tree_name, training_variables, training_parameters:
+            see Training.
     """
 
     def requires(self):
@@ -54,7 +57,7 @@ class ValidationReweighting(b2luigi.Task):
         expert = root_pandas.read_root(
             self.get_input_file_names('validation_expert.root'))
 
-        # normalize to len_data/len_mc (off-res.)
+        # normalize to len_data / len_mc (off-res.)
         key_EventType = expert.keys()[1]
         len_data = len(
             expert[expert[key_EventType] == 1])
@@ -71,10 +74,10 @@ class ValidationReweighting(b2luigi.Task):
 
 
 class DelegateValidation(b2luigi.Task):
-    """Delegate a validation training.
+    """Delegate reweighting of an off-resonance test sample.
 
-    Requires the SplitSample and ValidaionTraining tasks.
-    Use Parameters stored in a json file.
+    Starts the SplitSample, Training and ValidationReweighting
+    tasks. Uses Parameters stored in a json file.
 
     Parameters:
         name (str): Used for sorting, summarized results can be found in
