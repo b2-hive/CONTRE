@@ -6,9 +6,9 @@ def get_weights(expert_df, normalize_to):
 
     The weights are calculated with w = q / (1 - q).
     This is only valid if the output of the classifier is in the range [0,1).
-    The name of the weight column is "weight". The weights should be normalized
-    to match the ratio of`data / mc` of the samples used for training.
-    Columns are renamed to q (classifier output), EventType and weight.
+    The weights should be normalized to match the ratio of `data / mc`
+    of the samples used for training.
+    Columns are named: q (classifier output), EventType and weight.
 
     Parameters:
         expert (pd.DataFrame): dataframe with the classifier output

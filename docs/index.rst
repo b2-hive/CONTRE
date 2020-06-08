@@ -1,8 +1,3 @@
-.. CONTRE documentation master file, created by
-   sphinx-quickstart on Fri May 15 16:39:49 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 CONTRE
 ======
 **CONT** inumm **RE** weighting.
@@ -17,7 +12,7 @@ using off-resonace data.
 
 
 .. attention::
-    The package, and this documentation are still under construction.
+    The ``CONTRE`` package, and this documentation are still under construction.
 
 
 Indices and tables

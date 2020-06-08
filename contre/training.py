@@ -9,7 +9,7 @@ def split_sample(
         train_size,
         test_size,
         random_seed=42):
-    """Split rootfile and return dataframes. Select 0th candidate from list."""
+    """Split rootfile and return dataframes. Select 0th candidate."""
     df = root_pandas.read_root(ntuple_file)
     train, test = train_test_split(
         df,
