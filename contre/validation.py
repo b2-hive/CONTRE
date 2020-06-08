@@ -76,13 +76,13 @@ class ValidationReweighting(b2luigi.Task):
 class DelegateValidation(b2luigi.Task):
     """Delegate reweighting of an off-resonance test sample.
 
-    Starts the SplitSample, Training and ValidationReweighting
-    tasks. Uses Parameters stored in a json file.
+    Starts the SplitSample, Training and ValidationReweighting tasks.
+    Uses parameters from the parameter file.
 
     Parameters:
         name (str): Used for sorting, summarized results can be found in
-            `<result_folder>/name=<name>/validation_results.json`
-        parameter_file (str): name of the json file with stored settings,
+            `<result_folder>/name=<name>/validation_results.json`,
+        parameter_file (str): name of the parameter file.
     """
     name = b2luigi.Parameter()
     parameter_file = b2luigi.Parameter(significant=False)
