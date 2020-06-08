@@ -4,9 +4,10 @@ from numpy import mean
 def get_weights(expert_df, normalize_to):
     """Return dataframe with additional weight column.
 
-    The weights are calculated with w = q / (1 - q). The Name of the weight
-    column is "weight". The weights should be normalized to match the ratio of
-    `data / mc` of the samples used for training.
+    The weights are calculated with w = q / (1 - q).
+    This is only valid if the output of the classifier is in the range [0,1).
+    The name of the weight column is "weight". The weights should be normalized
+    to match the ratio of`data / mc` of the samples used for training.
     Columns are renamed to q (classifier output), EventType and weight.
 
     Parameters:
