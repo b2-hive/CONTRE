@@ -1,8 +1,10 @@
+![](logo.png)
+
 # CONTRE
-CONTinuum REweighting
+**CONT**inuum **RE**weighting
 
 Improve continuum MC with data-driven event-wise reweighting.
-Caclulate weights using a classifier (fastBDT) trained to distinguish between off resonance MC and off resonance data.
+Caclulate weights using a classifier (fastBDT) trained to distinguish between off-resonance MC and off-resonance data.
 
 ## Usage
 For the usage of this package, look at `contre/example`.  
