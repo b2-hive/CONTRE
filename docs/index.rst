@@ -12,6 +12,9 @@ This ist the documentation for ``CONTRE``.
 It can be used to improve the Continuum MC samples by reweighting,
 using off-resonace data.
 
+.. toctree::
+    modules
+
 
 .. attention::
     The package, and this documentation are still under construction.
