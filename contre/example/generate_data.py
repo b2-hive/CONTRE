@@ -1,13 +1,28 @@
+import os
 import numpy as np
 import pandas as pd
 from root_pandas import to_root
 
-if __name__ == "__main__":
-    size_mc = 500000
-    size_data = 10000
-    size_mc_offres = 150000
-    size_data_offres = 8000
-    frac_a = 0.8
+
+def generate_data(
+        size_mc=500000,
+        size_data=10000,
+        size_mc_offres=150000,
+        size_data_offres=8000,
+        frac_a=0.8):
+    """Generate root files to represent data and MC samples to demonstrate
+    the re-weighting.
+
+    Parameters:
+        size_mc, size_data, size_mc_offres, size_data_offres: number of events
+        in the corresponding sample.
+        frac_a: fraction of events in componentA
+
+    Return:
+        data, componentA, componentB, data_offres, componentA_offres:
+            pd.DataFrames of the generated samples.
+    """
+
     frac_b = 1 - frac_a
 
     # GENERATE DATA
@@ -74,8 +89,19 @@ if __name__ == "__main__":
     # SAVE DATA
     print("Saving data to 'example_input/<file>.root' ...")
 
+    if not os.path.exists("example_input"):
+        os.makedirs("example_input")
+
     to_root(data, "example_input/data.root", key="variables")
     to_root(componentA, "example_input/componentA.root", key="variables")
     to_root(componentB, "example_input/componentB.root", key="variables")
     to_root(data_offres, "example_input/data_offres.root", key="variables")
-    to_root(componentA_offres, "example_input/componentA_offres.root", key="variables")
+    to_root(
+        componentA_offres,
+        "example_input/componentA_offres.root", key="variables")
+
+    return data, componentA, componentB, data_offres, componentA_offres
+
+
+if __name__ == "__main__":
+    generate_data()
