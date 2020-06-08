@@ -13,4 +13,5 @@ setup(
         "scikit-learn",
         "numpy",
         "jupyter"],
+    license='MIT',
     )
