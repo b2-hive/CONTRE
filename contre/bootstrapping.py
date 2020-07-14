@@ -1,3 +1,4 @@
+import json
 import yaml
 import b2luigi
 import root_pandas
@@ -17,7 +18,7 @@ class Resample(b2luigi.Task):
     def run(self):
         df = root_pandas.read_root(
             *self.get_input_file_names('train.root'),
-            key='ntuple')
+            key=self.tree_name)
 
         # resample
         resampled_df = resample(df, random_state=self.random_seed)
@@ -44,29 +45,42 @@ class BootstrapTraining(b2luigi.Task):
                 Resample,
                 ntuple_file=ntuple_file,
                 train_size=train_size,
-                test_size=test_size)
+                test_size=test_size,
+                random_seed=self.random_seed)
 
     def output(self):
         yield self.add_to_output('bdt.xml')
 
     def run(self):
-        Training.run()
+        Training.run(self)
 
 
 ############
 # Validation
 ############
 
-@b2luigi.requires(BootstrapTraining)
+@b2luigi.inherits(BootstrapTraining)
 class BootstrapValidationExpert(b2luigi.Task):
     """Apply the BDT trained on the resampled train sample to the test sample.
     """
+    def requires(self):
+        yield self.clone_parent()
+
+        test_size = self.training_parameters["test_size"]
+        train_size = self.training_parameters["train_size"]
+        for off_res_file in self.off_res_files:
+            yield self.clone(
+                SplitSample,
+                ntuple_file=off_res_file,
+                train_size=train_size,
+                test_size=test_size
+            )
 
     def output(self):
         yield self.add_to_output('validation_expert.root')
 
     def run(self):
-        ValidationExpert.run()
+        ValidationExpert.run(self)
 
 
 @b2luigi.requires(BootstrapValidationExpert)
@@ -76,7 +90,7 @@ class BootstrapValidationReweighting(b2luigi.Task):
         yield self.add_to_output('validation_weights.root')
 
     def run(self):
-        ValidationReweighting.run()
+        ValidationReweighting.run(self)
 
 
 ###########################
@@ -94,7 +108,7 @@ class BootstrapExpert(b2luigi.Task):
         yield self.add_to_output('expert.root')
 
     def run(self):
-        Expert.run()
+        Expert.run(self)
 
 
 @b2luigi.inherits(BootstrapExpert)
@@ -113,7 +127,7 @@ class BootstrapReweighting(b2luigi.Task):
         yield self.add_to_output("weights.root")
 
     def run(self):
-        Reweighting.run()
+        Reweighting.run(self)
 
 
 ############
@@ -151,22 +165,11 @@ class DelegateBootstrapping(b2luigi.Task):
             for off_res_file in off_res_files:
                 # Resample
                 yield self.clone(
-                    Resample,
+                    SplitSample,
                     ntuple_file=off_res_file,
                     tree_name=parameters["tree_name"],
                     train_size=training_parameters.get("train_size"),
                     test_size=training_parameters.get("test_size"),
-                    random_seed=i,
-                )
-
-            # BootstrapTraining
-            yield self.clone(
-                BootstrapTraining,
-                off_res_files=off_res_files,
-                training_variables=parameters["training_variables"],
-                tree_name=parameters["tree_name"],
-                training_parameters=training_parameters,
-                random_seed=i,
                 )
 
             yield self.clone(
@@ -181,6 +184,7 @@ class DelegateBootstrapping(b2luigi.Task):
             if len(on_res_files) != 0:
                 # BootstrapReweighting
                 yield self.clone(
+                    BootstrapReweighting,
                     off_res_files=off_res_files,
                     on_res_files=on_res_files,
                     tree_name=parameters["tree_name"],
@@ -198,8 +202,20 @@ class DelegateBootstrapping(b2luigi.Task):
         yield self.add_to_output('bootstrap_results.json')
 
     def run(self):
-        expert_list = self.get_input_file_names('expert.root')
-        with open(self.get_output_file_name('expert_file_list.txt'), 'w') as f:
-            f.write('#root experts\n')
-            for expert in expert_list:
-                f.write(expert + '\n')
+        # on-res. weights
+        weights_list = self.get_input_file_names('weights.root')
+
+        # test sample weights
+        test_samples = self.get_input_file_names("test.root")
+        validation_weights_list = self.get_input_file_names(
+            "validation_weights.root")
+
+        bootstap_results = {
+            "weights_list": weights_list,
+            "test_samples": test_samples,
+            "validation_weights_list": validation_weights_list,
+        }
+
+        with open(self.get_output_file_name('bootstrap_results.json'), 'w')\
+                as f:
+            json.dump(bootstap_results, f)
