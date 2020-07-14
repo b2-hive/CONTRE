@@ -107,11 +107,11 @@ class Training(b2luigi.Task):
 
         fastbdt_options = basf2_mva.FastBDTOptions()
         training_parameters = self.training_parameters
-        if training_parameters["nTrees"]:
+        if training_parameters.get("nTrees") is not None:
             fastbdt_options.m_nTrees = training_parameters["nTrees"]
-        if training_parameters["shrinkage"]:
+        if training_parameters.get("shrinkage") is not None:
             fastbdt_options.m_shrinkage = training_parameters["shrinkage"]
-        if training_parameters["nLevels"]:
+        if training_parameters.get("nLevels") is not None:
             fastbdt_options.m_nLevels = training_parameters["nLevels"]
 
         # teacher
