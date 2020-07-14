@@ -161,17 +161,17 @@ class DelegateBootstrapping(b2luigi.Task):
 
         # Split Sample
 
-        for i in range(number_of_trainings):
-            for off_res_file in off_res_files:
-                # Resample
-                yield self.clone(
-                    SplitSample,
-                    ntuple_file=off_res_file,
-                    tree_name=parameters["tree_name"],
-                    train_size=training_parameters.get("train_size"),
-                    test_size=training_parameters.get("test_size"),
-                )
+        for off_res_file in off_res_files:
+            # Split Sample
+            yield self.clone(
+                SplitSample,
+                ntuple_file=off_res_file,
+                tree_name=parameters["tree_name"],
+                train_size=training_parameters.get("train_size"),
+                test_size=training_parameters.get("test_size"),
+            )
 
+        for i in range(number_of_trainings):
             yield self.clone(
                 BootstrapValidationReweighting,
                 off_res_files=off_res_files,
