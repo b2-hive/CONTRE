@@ -1,3 +1,4 @@
+import yaml
 import b2luigi
 import root_pandas
 from sklearn.utils import resample
@@ -52,6 +53,36 @@ class BootstrapTraining(b2luigi.Task):
         Training.run()
 
 
+############
+# Validation
+############
+
+@b2luigi.requires(BootstrapTraining)
+class BootstrapValidationExpert(b2luigi.Task):
+    """Apply the BDT trained on the resampled train sample to the test sample.
+    """
+
+    def output(self):
+        yield self.add_to_output('validation_expert.root')
+
+    def run(self):
+        ValidationExpert.run()
+
+
+@b2luigi.requires(BootstrapValidationExpert)
+class BootstrapValidationReweighting(b2luigi.Task):
+
+    def output(self):
+        yield self.add_to_output('validation_weights.root')
+
+    def run(self):
+        ValidationReweighting.run()
+
+
+###########################
+# Reweighting on-res. files
+###########################
+
 @b2luigi.requires(BootstrapTraining)
 class BootstrapExpert(b2luigi.Task):
     """Apply the BDT trained on the resampled train sample to the
@@ -66,6 +97,29 @@ class BootstrapExpert(b2luigi.Task):
         Expert.run()
 
 
+@b2luigi.inherits(BootstrapExpert)
+class BootstrapReweighting(b2luigi.Task):
+    """Caclulate weights from the BootstrapExpert."""
+
+    def requires(self):
+        yield self.clone_parent()
+        yield self.clone(
+            BootstrapValidationReweighting,
+            off_res_files=self.off_res_files,
+            training_variables=self.training_variables,
+            **self.training_parameters)
+
+    def output(self):
+        yield self.add_to_output("weights.root")
+
+    def run(self):
+        Reweighting.run()
+
+
+############
+# Delegation
+############
+
 class DelegateBootstrapping(b2luigi.Task):
     """Create filelist with paths for the experts.
 
@@ -73,34 +127,75 @@ class DelegateBootstrapping(b2luigi.Task):
     samples for a given number of resampled samples.
 
     Parameters:
-        experiment: experiment number
-        train_size: size of the training sample
-        test_size: size of the test sample
-        r2_smaller_than (float): See SplitSapmle
-        number_of_trainings: Number of trainings that should be performed for
-            bootstraping.
+        name, parameter_file: analouges to DelegateReweighting
 
     Output:
-        Create a textfile with path to all experts (expert_file_list.txt)
+        bootstrap_results.json
+        bootstrap_validation_results.json
     """
-    experiment = b2luigi.IntParameter()
-    train_size = b2luigi.FloatParameter()
-    test_size = b2luigi.FloatParameter()
-    r2_smaller_than = b2luigi.FloatParameter()
-    number_of_trainings = b2luigi.IntParameter()
+    name = b2luigi.Parameter()
+    parameter_file = b2luigi.Parameter(significant=False)
 
     def requires(self):
-        for i in range(self.number_of_trainings):
+        with open(self.parameter_file) as parameter_file:
+            parameters = yaml.load(parameter_file)
+
+        off_res_files = parameters.get("off_res_files")
+        on_res_files = parameters.get("on_res_files")
+        training_parameters = parameters.get("training_parameters")
+        number_of_trainings = parameters["number_of_trainings"]
+
+        # Split Sample
+
+        for i in range(number_of_trainings):
+            for off_res_file in off_res_files:
+                # Resample
+                yield self.clone(
+                    Resample,
+                    ntuple_file=off_res_file,
+                    tree_name=parameters["tree_name"],
+                    train_size=training_parameters.get("train_size"),
+                    test_size=training_parameters.get("test_size"),
+                    random_seed=i,
+                )
+
+            # BootstrapTraining
             yield self.clone(
-                BootstrapExpert,
-                experiment=self.experiment,
-                train_size=self.train_size,
-                test_size=self.test_size,
-                r2_smaller_than=self.r2_smaller_than,
-                random_seed_resample=i)
+                BootstrapTraining,
+                off_res_files=off_res_files,
+                training_variables=parameters["training_variables"],
+                tree_name=parameters["tree_name"],
+                training_parameters=training_parameters,
+                random_seed=i,
+                )
+
+            yield self.clone(
+                BootstrapValidationReweighting,
+                off_res_files=off_res_files,
+                tree_name=parameters["tree_name"],
+                training_variables=parameters["training_variables"],
+                training_parameters=training_parameters,
+                random_seed=i
+                )
+
+            if len(on_res_files) != 0:
+                # BootstrapReweighting
+                yield self.clone(
+                    off_res_files=off_res_files,
+                    on_res_files=on_res_files,
+                    tree_name=parameters["tree_name"],
+                    training_variables=parameters["training_variables"],
+                    training_parameters=training_parameters,
+                    random_seed=i
+                    )
+
+        if len(on_res_files) == 0:
+            print(
+                "No on-resonance files are given."
+                "Only test samples will be reweighted.")
 
     def output(self):
-        yield self.add_to_output('expert_file_list.txt')  # does this work?
+        yield self.add_to_output('bootstrap_results.json')
 
     def run(self):
         expert_list = self.get_input_file_names('expert.root')
@@ -108,31 +203,3 @@ class DelegateBootstrapping(b2luigi.Task):
             f.write('#root experts\n')
             for expert in expert_list:
                 f.write(expert + '\n')
-
-
-############
-# Validation
-############
-
-
-@b2luigi.requires(BootstrapTraining)
-class BootstrapValidationExpert(b2luigi.Task):
-    """Apply the BDT trained on the resampled train sample to the test sample.
-    """
-
-    def output(self):
-        yield self.add_to_output('validation_expert.root')
-
-    def run(self):
-        ValidaionExpert.run()
-
-
-@b2luigi.requires(BootstrapValidationExpert)
-class BootstrapValidationReweighting(b2luigi.Task):
-
-    def output(self):
-        yield self.add_to_output("")
-
-
-class DelegateValidationBootstrapping(b2luigi.Task):
-    """Delegate Reweighting of the test sample with the different trainings."""
