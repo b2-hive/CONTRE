@@ -10,6 +10,17 @@ from contre.validation import ValidationExpert, ValidationReweighting
 
 @b2luigi.requires(SplitSample)
 class Resample(b2luigi.Task):
+    """Resample the train sample and store it to a root file.
+
+    Parameters:
+        ntuple_file (str): Path to the file
+        train_size (float): between 0 and 1, size of train sample
+        test_size (float): size of test sample,
+        random_seed (int): random seed to generate a resampled sample
+
+    Output:
+        train.root
+    """
     random_seed = b2luigi.IntParameter()
 
     def output(self):
@@ -30,6 +41,20 @@ class Resample(b2luigi.Task):
 
 
 class BootstrapTraining(b2luigi.Task):
+    """Start a training with a resampled train sample. See also `Training`.
+
+    Parameters:
+        random_seed (int): random seed of the resampled train sample
+        off_res_files (list): List with paths to off-res. files
+        tree_name (str): name of the tree in the root file
+        training_variables (list): list of training variables used for training
+        training_parameters (dict): train- and test size,
+            the following BDT hyper-parameters (optional): "nTrees",
+            "shrinkage" and "nLevels".
+
+    Output:
+        bdt.xml
+    """
     random_seed = b2luigi.IntParameter()
     off_res_files = b2luigi.ListParameter(hashed=True)
     tree_name = b2luigi.ListParameter()
@@ -62,6 +87,10 @@ class BootstrapTraining(b2luigi.Task):
 @b2luigi.inherits(BootstrapTraining)
 class BootstrapValidationExpert(b2luigi.Task):
     """Apply the BDT trained on the resampled train sample to the test sample.
+
+    Parameters:
+        random_seed, off_res_files, tree_name, training_variables,
+        training_parameters: see BootstrapTraining.
     """
     def requires(self):
         yield self.clone_parent()
@@ -85,6 +114,12 @@ class BootstrapValidationExpert(b2luigi.Task):
 
 @b2luigi.requires(BootstrapValidationExpert)
 class BootstrapValidationReweighting(b2luigi.Task):
+    """Reweight the test samples from the BootstrapExpert.
+
+    Parameters:
+        random_seed, off_res_files, tree_name, training_variables,
+        training_parameters: see BootstrapTraining.
+    """
 
     def output(self):
         yield self.add_to_output('validation_weights.root')
@@ -100,7 +135,12 @@ class BootstrapValidationReweighting(b2luigi.Task):
 @b2luigi.requires(BootstrapTraining)
 class BootstrapExpert(b2luigi.Task):
     """Apply the BDT trained on the resampled train sample to the
-    on-res. Continuum MC."""
+    on-res. Continuum MC.
+
+    Parameters:
+        random_seed, off_res_files, tree_name, training_variables,
+        training_parameters: see BootstrapTraining.
+    """
     on_res_files = b2luigi.ListParameter(hashed=True)
     queue = "sx"
 
@@ -113,7 +153,13 @@ class BootstrapExpert(b2luigi.Task):
 
 @b2luigi.inherits(BootstrapExpert)
 class BootstrapReweighting(b2luigi.Task):
-    """Caclulate weights from the BootstrapExpert."""
+    """Reweight the on-res. MC samples. Calculate weights from
+    the BootstrapExpert.
+
+    Parameters:
+        random_seed, off_res_files, tree_name, training_variables,
+        training_parameters: see BootstrapTraining.
+    """
 
     def requires(self):
         yield self.clone_parent()
@@ -135,13 +181,14 @@ class BootstrapReweighting(b2luigi.Task):
 ############
 
 class DelegateBootstrapping(b2luigi.Task):
-    """Create filelist with paths for the experts.
+    """Delegate the set of trainings and the reweighting of the test- and
+    on-res. MC samples. The number_of_training parameter has to be set in the
+    parameter file.
 
-    Delegate BootstrapTraining and BootstrapExpert with resampled data train
-    samples for a given number of resampled samples.
+    The different sets of weights are listed in two different output files.
 
     Parameters:
-        name, parameter_file: analouges to DelegateReweighting
+        name, parameter_file: analogues to DelegateReweighting.
 
     Output:
         bootstrap_results.json
