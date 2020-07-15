@@ -4,7 +4,8 @@ contre
 .. toctree::
    :maxdepth: 4
 
-   reweighting
    training
+   reweighting
    validation
    weights
+   bootstrapping
