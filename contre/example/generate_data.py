@@ -29,28 +29,32 @@ def generate_data(
     print(
         "Generating the following dataframes:\n"
         "data, componentA, componentB, data_offres and componentA_offres ...")
+
+    # Random state for random number generation
+    rs = np.random.RandomState(seed=1)
+
     # on res
     data = pd.DataFrame()
     componentA = pd.DataFrame()
     componentB = pd.DataFrame()
 
     # variable1
-    tmp_data = np.random.triangular(0, 1, 1, size=int(size_data*frac_a*0.3))
+    tmp_data = rs.triangular(0, 1, 1, size=int(size_data*frac_a*0.3))
     tmp_data = np.append(
-        tmp_data, np.random.normal(0.3, 0.1, int(size_data*frac_b)))
+        tmp_data, rs.normal(0.3, 0.1, int(size_data*frac_b)))
     tmp_data = np.append(
-        tmp_data, np.random.uniform(size=int(size_data*frac_a*0.7)))
+        tmp_data, rs.uniform(size=int(size_data*frac_a*0.7)))
     data["variable1"] = tmp_data
     data = data.loc[data["variable1"] >= 0]
 
-    componentA["variable1"] = np.random.uniform(size=int(size_mc * frac_a))
-    componentB["variable1"] = np.random.normal(
+    componentA["variable1"] = rs.uniform(size=int(size_mc * frac_a))
+    componentB["variable1"] = rs.normal(
         0.3, 0.1, size=int(size_mc * frac_b))
 
     # variable2
-    data["variable2"] = np.random.uniform(size=len(data))
-    componentA["variable2"] = np.random.uniform(size=int(size_mc*frac_a))
-    componentB["variable2"] = np.random.uniform(size=int(size_mc*frac_b))
+    data["variable2"] = rs.uniform(size=len(data))
+    componentA["variable2"] = rs.uniform(size=int(size_mc*frac_a))
+    componentB["variable2"] = rs.uniform(size=int(size_mc*frac_b))
 
     # candidate and EventType
     data["__candidate__"] = [0]*len(data)
@@ -66,17 +70,17 @@ def generate_data(
     componentA_offres = pd.DataFrame()
 
     # variable1
-    tmp_data = np.random.triangular(
+    tmp_data = rs.triangular(
         0, 1, 1, size=int(size_data_offres*frac_a*0.3))
     tmp_data = np.append(
-        tmp_data, np.random.uniform(size=int(size_data_offres*frac_a*0.7)))
+        tmp_data, rs.uniform(size=int(size_data_offres*frac_a*0.7)))
     data_offres["variable1"] = tmp_data
-    componentA_offres["variable1"] = np.random.uniform(
+    componentA_offres["variable1"] = rs.uniform(
         size=int(size_mc_offres*frac_a))
 
     # variable2
-    data_offres["variable2"] = np.random.uniform(size=len(data_offres))
-    componentA_offres["variable2"] = np.random.uniform(
+    data_offres["variable2"] = rs.uniform(size=len(data_offres))
+    componentA_offres["variable2"] = rs.uniform(
         size=int(size_mc_offres*frac_a))
 
     # candidate and EventType
