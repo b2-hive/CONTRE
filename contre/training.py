@@ -16,7 +16,8 @@ def split_sample(
         test_size=test_size,
         train_size=train_size,
         random_state=random_seed)
-    train = train[train["__candidate__"] == 0]
+    if train.get("__candidate__") is not None:
+        train = train[train["__candidate__"] == 0]
     return train, test
 
 
