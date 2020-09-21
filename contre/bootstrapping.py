@@ -22,6 +22,7 @@ class Resample(b2luigi.Task):
         train.root
     """
     random_seed = b2luigi.IntParameter()
+    queue = "sx"
 
     def output(self):
         yield self.add_to_output("train.root")
