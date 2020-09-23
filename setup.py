@@ -11,7 +11,7 @@ setup(
         "pandas",
         "root-pandas",
         "scikit-learn",
-        "numpy",
-        "jupyter"],
+        "numpy"
+        ],
     license='MIT',
     )
