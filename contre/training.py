@@ -114,6 +114,8 @@ class Training(b2luigi.Task):
             fastbdt_options.m_shrinkage = training_parameters["shrinkage"]
         if training_parameters.get("nLevels") is not None:
             fastbdt_options.m_nLevels = training_parameters["nLevels"]
+        if training_parameters.get("nCuts") is not None:
+            fastbdt_options.m_nCuts = training_parameters["nCuts"]
 
         # teacher
         basf2_mva.teacher(general_options, fastbdt_options)
