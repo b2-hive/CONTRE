@@ -1,6 +1,7 @@
 import root_pandas
 import basf2_mva
 import b2luigi
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
@@ -11,11 +12,18 @@ def split_sample(
         random_seed=42):
     """Split rootfile and return dataframes. Select 0th candidate."""
     df = root_pandas.read_root(ntuple_file)
-    train, test = train_test_split(
-        df,
-        test_size=test_size,
-        train_size=train_size,
-        random_state=random_seed)
+    try:
+        train, test = train_test_split(
+            df,
+            test_size=test_size,
+            train_size=train_size,
+            random_state=random_seed)
+    except ValueError:
+        print(
+            "The dataframe was too small, the test and train sample are empty")
+        empty = {col: [] for col in df.columns}
+        test = pd.DataFrame(empty)
+        train = pd.DataFrame(empty)
     if train.get("__candidate__") is not None:
         train = train[train["__candidate__"] == 0]
     return train, test
